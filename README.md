@@ -6,7 +6,7 @@ Geolocation based on Photon (Komoot) through Open Street Map. The geocoder goes 
 
 ## Strategies
 
-* [OFN BE](/configs/ofnBe.js) -> input/output [samples](https://github.com/qalincalabs/limosa/blob/main/configs/ofnBe.test.js#L45)
+* [OFN BE](/configs/ofnBe.js) -> input/output [samples](https://github.com/qalincalabs/limosa/blob/main/configs/ofnBe.test.js#L20)
 
 ## How to
 
