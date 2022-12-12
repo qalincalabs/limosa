@@ -4,21 +4,28 @@
     "description": "Geolocation based on Photon (Komoot) through Open Street Map",
     "main": "index.js",
     "scripts": {
-      "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "node --experimental-vm-modules node_modules/.bin/jest"
     },
     "repository": {
-      "type": "git",
-      "url": "git+https://github.com/qalincalabs/limosa.git"
+        "type": "git",
+        "url": "git+https://github.com/qalincalabs/limosa.git"
     },
     "keywords": [
-      "geolocation",
-      "photon",
-      "osm"
+        "geolocation",
+        "photon",
+        "osm"
     ],
     "author": "Olivier Wouters (Qalinca Labs - ULB)",
     "license": "MIT",
     "bugs": {
-      "url": "https://github.com/qalincalabs/limosa/issues"
+        "url": "https://github.com/qalincalabs/limosa/issues"
     },
-    "homepage": "https://github.com/qalincalabs/limosa#readme"
-  }
+    "homepage": "https://github.com/qalincalabs/limosa#readme",
+    "devDependencies": {
+        "jest": "^29.3.1"
+    },
+    "dependencies": {
+        "fuzzball": "^2.1.2",
+        "node-fetch": "^3.3.0"
+    }
+}
