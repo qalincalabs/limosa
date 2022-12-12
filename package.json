@@ -1,31 +1,32 @@
 {
-    "name": "@qalincalabs/limosa",
-    "version": "0.1.0",
-    "description": "Geolocation based on Photon (Komoot) through Open Street Map",
-    "main": "index.js",
-    "scripts": {
-        "test": "node --experimental-vm-modules node_modules/.bin/jest"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/qalincalabs/limosa.git"
-    },
-    "keywords": [
-        "geolocation",
-        "photon",
-        "osm"
-    ],
-    "author": "Olivier Wouters (Qalinca Labs - ULB)",
-    "license": "MIT",
-    "bugs": {
-        "url": "https://github.com/qalincalabs/limosa/issues"
-    },
-    "homepage": "https://github.com/qalincalabs/limosa#readme",
-    "devDependencies": {
-        "jest": "^29.3.1"
-    },
-    "dependencies": {
-        "fuzzball": "^2.1.2",
-        "node-fetch": "^3.3.0"
-    }
+  "type": "module",
+  "name": "@qalincalabs/limosa",
+  "version": "0.1.0",
+  "description": "Geolocation based on Photon (Komoot) through Open Street Map",
+  "main": "geocoder.js",
+  "scripts": {
+    "test": "node --experimental-vm-modules node_modules/.bin/jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/qalincalabs/limosa.git"
+  },
+  "keywords": [
+    "geolocation",
+    "photon",
+    "osm"
+  ],
+  "author": "Olivier Wouters (Qalinca Labs - ULB)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/qalincalabs/limosa/issues"
+  },
+  "homepage": "https://github.com/qalincalabs/limosa#readme",
+  "devDependencies": {
+    "jest": "^29.3.1"
+  },
+  "dependencies": {
+    "fuzzball": "^2.1.2",
+    "node-fetch": "^3.3.0"
+  }
 }
