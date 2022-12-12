@@ -1,6 +1,6 @@
-import fetch from "node-fetch";
 import * as fuzz from "fuzzball";
-import { ofnBeConfig } from "./configs/ofnBe";
+import { ofnBeProfile } from "./configs/ofnBe";
+import { photonSearch, nominatimGetDetails} from "./framework.js";
 
 const PhotonProperties = [
   "country",
@@ -23,37 +23,11 @@ function osmUuidToOsmElement(uuid) {
   };
 }
 
-async function get(url, urlSearchParams) {
-  const requestUrl = url + "?" + urlSearchParams.toString();
-  const request = await fetch(requestUrl);
-  const response = await request.json();
-  return response;
-}
-
 // give services (their url), mapping configurations
 export class Geocoder {
-  constructor(serviceConfig, profile) {
-    this.photonUrl = serviceConfig.photon.url;
+  constructor(profile, config) {
+    this.photonUrl = config?.photon?.url ?? "https://photon.komoot.io/api";
     this.profile = profile;
-  }
-
-  async makePhotonRequest(requestAddressComponents, config) {
-    const searchParams = new URLSearchParams({
-      q: requestAddressComponents.join(", "),
-    });
-
-    if (config?.layers != null) {
-      config.layers.forEach((l) => searchParams.append("layer", l));
-    }
-
-    if (config?.limit != null) searchParams.append("limit", config.limit);
-
-    return await get(this.photonUrl, searchParams);
-  }
-
-  async makeNominatimDetailsRequest(q) {
-    q.format = "json";
-    return await get(this.nominatimUrl + "/details", new URLSearchParams(q));
   }
 
   async locate(input) {
@@ -153,12 +127,18 @@ export class Geocoder {
 
     // TODO get strategy tactics
     for (const tactic of currentTactics) {
-      const searchComponents = tactic.searchQuery(initialData);
+      const addressTags = tactic.searchQuery(initialData);
 
-      const response = await this.makePhotonRequest(searchComponents, {
+      const response = await photonSearch(
+      {
+        addressTags: addressTags,
         layers: tactic.layers,
         limit: tactic.limit,
-      });
+      },
+      {
+        url: this.photonUrl
+      }
+      );
 
       // TODO refactor
       const features = response.features.map((f) => {
@@ -272,4 +252,4 @@ export class Geocoder {
   }
 }
 
-export { ofnBeConfig }
+export { ofnBeProfile, nominatimGetDetails }

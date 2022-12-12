@@ -1,4 +1,4 @@
-export const ofnBeConfig = {
+export const ofnBeProfile = {
   properties: [
     "countrycode",
     "state",

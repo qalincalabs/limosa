@@ -1,10 +1,10 @@
-import { Geocoder, ofnBeConfig } from "../geocoder.js";
+import { Geocoder, ofnBeProfile, nominatimGetDetails } from "../geocoder.js";
 
 test("Geocode OFN address - sample", async () => {
-  const geocoder = createGeoCoder();
+  const geocoder = new Geocoder(ofnBeProfile);
   const result = await geocoder.locate(runs.exactMatchInCountryside.input);
 
-  const nominatimSearch = await makeNominatimDetailsRequest({
+  const nominatimSearch = await nominatimGetDetails({
     namedetails: 1,
     extratags: 1,
     osmtype: result.electedOsmElement.type,
@@ -16,30 +16,6 @@ test("Geocode OFN address - sample", async () => {
   console.log(JSON.stringify(nominatimSearch, null, 2));
   //expect(1+2).toBe(3);
 });
-
-async function makeNominatimDetailsRequest(q) {
-  q.format = "json";
-  return await get(
-    "https://nominatim.openstreetmap.org/details",
-    new URLSearchParams(q)
-  );
-}
-
-async function get(url, urlSearchParams) {
-  const requestUrl = url + "?" + urlSearchParams.toString();
-  const request = await fetch(requestUrl);
-  const response = await request.json();
-  return response;
-}
-
-function createGeoCoder() {
-  return new Geocoder(
-    {
-      photon: { url: "https://photon.komoot.io/api" },
-    },
-    ofnBeConfig
-  );
-}
 
 const runs = {
   exactMatchInCity: {
