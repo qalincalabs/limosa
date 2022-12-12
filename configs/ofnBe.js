@@ -1,4 +1,4 @@
-export const config = {
+export const ofnBeConfig = {
   properties: [
     "countrycode",
     "state",
@@ -89,6 +89,3 @@ export const config = {
     },
   ],
 };
-
-const LimosaOfnBeConfig = () => {};
-export default LimosaOfnBeConfig;

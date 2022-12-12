@@ -1,7 +1,8 @@
 import fetch from "node-fetch";
 import * as fuzz from "fuzzball";
+import { ofnBeConfig } from "./configs/ofnBe";
 
-export const PhotonProperties = [
+const PhotonProperties = [
   "country",
   "countrycode",
   "state",
@@ -22,7 +23,7 @@ function osmUuidToOsmElement(uuid) {
   };
 }
 
-export async function get(url, urlSearchParams) {
+async function get(url, urlSearchParams) {
   const requestUrl = url + "?" + urlSearchParams.toString();
   const request = await fetch(requestUrl);
   const response = await request.json();
@@ -270,3 +271,5 @@ export class Geocoder {
     return matrix;
   }
 }
+
+export { ofnBeConfig }

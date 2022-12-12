@@ -1,5 +1,4 @@
-import { Geocoder } from "../geocoder.js";
-import { config } from "./ofnBe.js";
+import { Geocoder, ofnBeConfig } from "../geocoder.js";
 
 test("Geocode OFN address - sample", async () => {
   const geocoder = createGeoCoder();
@@ -38,7 +37,7 @@ function createGeoCoder() {
     {
       photon: { url: "https://photon.komoot.io/api" },
     },
-    config
+    ofnBeConfig
   );
 }
 
