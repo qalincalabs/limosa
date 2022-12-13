@@ -8,6 +8,14 @@ Geolocation based on Photon (Komoot) through Open Street Map. The geocoder goes 
 
 * [OFN BE](/configs/ofnBe.js) -> input/output [samples](https://github.com/qalincalabs/limosa/blob/main/configs/ofnBe.test.js#L20)
 
+## TODOs
+
+* Plug with https://github.com/openvenues/libpostal (need to find a public API)
+* Standard inputs :
+  * Address components (array of address components)
+  * Sorted address components (minor to major)
+  * Structured address components (each component linked to one or multiple Photon layers)
+
 ## How to
 
 ```javascript
