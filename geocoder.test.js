@@ -1,4 +1,4 @@
-import * as limosa from "../geocoder.js";
+import * as limosa from "./geocoder.js";
 
 // limosa locate
 
