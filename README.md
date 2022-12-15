@@ -4,19 +4,57 @@ Geolocation based on Photon (Komoot) through Open Street Map. The geocoder goes 
 
 > Strict ! For instance, if a housenumber doesn't exist in OSM, the geocoder will only output the street.
 
-## Strategies
+```javascript
+import * as limosa from "../geocoder.js";
 
-* [OFN BE](/configs/ofnBe.js) -> input/output [samples](https://github.com/qalincalabs/limosa/blob/main/configs/ofnBe.test.js#L20)
+const result = await limosa.locate({
+  house: "14",
+  street: "Quai des Saulx",
+  locality: "Bouillon",
+  postalCode: "6830",
+  country: "Belgium"
+});
+
+/*
+result is
+  {
+    electedMatch: {
+      countrycode: 'BE',
+      state: 'Luxembourg',
+      county: 'Neufchâteau',
+      city: 'Bouillon',
+      district: 'Bouillon',
+      postcode: '6830',
+      street: 'Quai des Saulx',
+      housenumber: '14'
+    },
+    electedOsmElement: { id: '422861107', type: 'W' }
+  }
+*/
+
+// to get extra info, call nominatim
+const nominatimQuery = {
+  osmid: result.electedOsmElement.id,
+  osmtype: result.electedOsmElement.type,
+  addressdetails: 1,
+  namedetails: 1,
+  tagdetails: 1,
+}
+
+const nominatimResult = await nominatimGetDetails(nominatimQuery)
+```
 
 ## TODOs
 
 * Plug with https://github.com/openvenues/libpostal (need to find a public API)
-* Standard inputs :
-  * Address components (array of address components)
-  * Sorted address components (minor to major)
-  * Structured address components (each component linked to one or multiple Photon layers)
 
-## How to
+## Custom geocoder
+
+### Strategies
+
+* [OFN BE](/configs/ofnBe.js) -> input/output [samples](https://github.com/qalincalabs/limosa/blob/main/configs/ofnBe.test.js#L20)
+
+### How to
 
 ```javascript
 import { Geocoder, ofnBeProfile, nominatimGetDetails } from "@qalincalabs/limosa";
@@ -51,15 +89,4 @@ result is
   },
 }
 */
-
-// to get extra info, call nominatim
-const nominatimQuery = {
-  osmid: result.electedOsmElement.id,
-  osmtype: result.electedOsmElement.type,
-  addressdetails: 1,
-  namedetails: 1,
-  tagdetails: 1,
-}
-
-const nominatimResult = await nominatimGetDetails(nominatimQuery))
 ```

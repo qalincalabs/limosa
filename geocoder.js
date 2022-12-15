@@ -1,8 +1,8 @@
 import * as fuzz from "fuzzball";
 import { ofnBeProfile } from "./configs/ofnBe";
-import { photonSearch, nominatimGetDetails} from "./framework.js";
+import { photonSearch, nominatimGetDetails } from "./framework.js";
 
-const PhotonProperties = [
+const photonProperties = [
   "country",
   "countrycode",
   "state",
@@ -15,11 +15,145 @@ const PhotonProperties = [
   "housenumber",
 ];
 
+const layersMapping = {
+  house: ["house"],
+  street: ["street"],
+  locality: ["locality", "district", "city"],
+  region: ["county", "state"],
+  country: ["country"],
+};
+
+const untilPropertyMapping = {
+  house: "housenumber",
+  street: "street",
+  locality: "district",
+  region: "county",
+  country: "country",
+};
+
+const levelsMajorToMinor = ["country", "region", "locality", "street", "house"];
+
 function osmUuidToOsmElement(uuid) {
   const split = uuid.split("-");
   return {
     id: split[1],
     type: split[0].toUpperCase(),
+  };
+}
+
+export async function locate(input, config) {
+  // TODO a bit of a hack to build a strategy per
+  const strategy = buildStrategy(input, config);
+  const geocoder = new Geocoder(strategy);
+  return await geocoder.locate(input);
+}
+
+function addressLevelsAsc(input) {
+  const sortedKeys = Object.keys(input).sort(
+    (a, b) => levelsMajorToMinor.indexOf(a) - levelsMajorToMinor.indexOf(b)
+  );
+  return sortedKeys;
+}
+
+function addressLevelsDesc(input) {
+  return addressLevelsAsc(input).reverse();
+}
+
+function addressLevelsDecreasing(input) {
+  const sortedKeys = Object.keys(input).sort(
+    (a, b) => levelsMajorToMinor.indexOf(a) - levelsMajorToMinor.indexOf(b)
+  );
+  return sortedKeys;
+}
+
+function addressTagsForSpecificLevel(input, level) {
+  const slicedKeys = addressLevelsDesc(input).filter(
+    (k) => levelsMajorToMinor.indexOf(level) >= levelsMajorToMinor.indexOf(k)
+  );
+  const tags = slicedKeys.map((k) => input[k]).flat();
+  return tags;
+}
+
+export function buildStrategy(input, config) {
+  // TODO : a bit of a hack
+
+  const postalCode = input.postalCode;
+  delete input.postalCode;
+
+  for (const [key, value] of Object.entries(input)) {
+    if (Array.isArray(value) == false) input[key] = [value];
+  }
+
+  if (config?.untilLevel != null && input[config.untilLevel] == null)
+    input[config.untilLevel] = [];
+
+  const postalCodeLevel = config?.postalCodeLevel ?? "locality";
+
+  if (postalCode != null) {
+    if (input[postalCodeLevel] == null) input[postalCodeLevel] = [];
+    input[postalCodeLevel].push(postalCode);
+  }
+
+  console.log(input);
+
+  const strategy = {
+    key: "default",
+    validationThreshold: 80,
+    skipBreakingAtLayers: ["street"],
+  };
+
+  const tactics = [];
+
+  for (const level of addressLevelsDecreasing(input)) {
+    const layers = layersMapping[level];
+    const untilProperty = untilPropertyMapping[level];
+
+    const tactic = {
+      key: "global_" + level,
+      layers: layers,
+      untilProperty: untilProperty,
+      searchQuery: (input) => {
+        return addressTagsForSpecificLevel(input, level);
+      },
+    };
+
+    if (level == "country") {
+      tactic.postTransform = (input, features) => {
+        // If a unique country is found, replace input country name with this one
+        if (features?.length == 1)
+          input.country = [features[0].properties.country];
+      };
+    }
+
+    if (["house", "street"].includes(level) && input.street?.[0] != null) {
+      tactic.validateAgainst = (input) => {
+        return {
+          street: input.street[0],
+        };
+      };
+    }
+
+    tactics.push(tactic);
+  }
+
+  strategy.tactics = tactics.map((t) => t.key);
+
+  return {
+    properties: [
+      "countrycode",
+      "state",
+      "county",
+      "city",
+      "district",
+      "postcode",
+      "street",
+      "housenumber",
+    ],
+    selectStrategy: (input) => {
+      return "default";
+    },
+    strategies: [strategy],
+    tactics: tactics,
   };
 }
 
@@ -130,14 +264,14 @@ export class Geocoder {
       const addressTags = tactic.searchQuery(initialData);
 
       const response = await photonSearch(
-      {
-        addressTags: addressTags,
-        layers: tactic.layers,
-        limit: tactic.limit,
-      },
-      {
-        url: this.photonUrl
-      }
+        {
+          addressTags: addressTags,
+          layers: tactic.layers,
+          limit: tactic.limit,
+        },
+        {
+          url: this.photonUrl,
+        }
       );
 
       // TODO refactor
@@ -252,4 +386,4 @@ export class Geocoder {
   }
 }
 
-export { ofnBeProfile, nominatimGetDetails }
+export { ofnBeProfile, nominatimGetDetails };

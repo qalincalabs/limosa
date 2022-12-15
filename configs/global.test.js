@@ -1,41 +1,48 @@
-import { buildStrategy } from "./global.js";
-import { Geocoder } from "../geocoder.js";
+import * as limosa from "../geocoder.js";
 
 // limosa locate
 
-test("Global geocode", async () => {
-  // tell what level to reach
-  const carlsbourg = {
-    // house: ["40 Grand rue"], // house
-    street: ["40 Grand rue"], // street, first element needs to contain street name
-    locality: ["Carlsbourg", "6850"], // locality, district, city
-    country: ["Belgium"], // country
-  };
-
-  const swainstownFarm = {
-    house: ["Swainstown farm", "C15 YK80"],
-    locality: ["Kilmessan"],
-    region: ["Co. Meatch"], // county, state
-    country: ["Ireland"],
-  };
-
-  const input = runs.notTheExactCity.input;
-  const strategy = buildStrategy(input, { untilLevel: "house" });
-  const geocoder = new Geocoder(strategy);
-
-  const result = await geocoder.locate(input);
+// Esplanade Godefroy 1, 6830 Bouillon, Belgique
+test("Geocode sample", async () => {
+  const result = await limosa.locate({
+    house: "14",
+    street: "Quai des Saulx",
+    locality: "Bouillon",
+    postalCode: "6830",
+    country: "Belgium",
+  });
 
   console.log(result);
 
-  //logWithFunctionCode(strategy)
+  // to get extra info, call nominatim
+  const nominatimQuery = {
+    osmid: result.electedOsmElement.id,
+    osmtype: result.electedOsmElement.type,
+    addressdetails: 1,
+    namedetails: 1,
+    tagdetails: 1,
+  };
+
+  const nominatimResult = await limosa.nominatimGetDetails(nominatimQuery);
+
+  console.log(nominatimResult)
+}, 60000);
+
+test("Global geocode", async () => {
+  const run = runs.exactMatchInCity;
+  const config = Object.assign({ untilLevel: "house" }, run.config);
+  const result = await limosa.locate(run.input, config);
+
+  console.log(result);
 }, 60000);
 
 const runs = {
   exactMatchInCity: {
     input: {
       street: ["Av. du Vert Chasseur 46"],
+      postalCode: "1180",
+      locality: ["Uccle"],
       country: ["Belgium"],
-      city: ["Uccle", "1180"],
     },
     output: {
       electedMatch: {
@@ -56,7 +63,8 @@ const runs = {
   houseNumberUnknown: {
     input: {
       street: ["60A Grand rue"], // street, first element needs to contain street name
-      locality: ["Carlsbourg", "6850"], // locality, district, city
+      postalCode: "6850",
+      locality: ["Carlsbourg"], // locality, district, city
       country: ["Belgium"], // country
     },
     output: {
@@ -78,7 +86,8 @@ const runs = {
   exactMatchInCountryside: {
     input: {
       street: ["40 Grand rue"], // street, first element needs to contain street name
-      locality: ["Carlsbourg", "6850"], // locality, district, city
+      postalCode: "6850",
+      locality: ["Carlsbourg"], // locality, district, city
       country: ["Belgium"], // country
     },
     output: {
@@ -101,8 +110,9 @@ const runs = {
   notTheExactCity: {
     input: {
       street: ["50 Avenue Franklin Roosevelt"],
+      postalCode: "1050",
       country: ["Belgium"],
-      locality: ["1050", "Ixelles"],
+      locality: ["Ixelles"],
     },
     ouput: {
       electedMatch: {
@@ -124,7 +134,8 @@ const runs = {
   fakeStreet: {
     input: {
       street: ["Av. des bons légumes"],
-      locality: ["Ixelles", "1050"],
+      postalCode: "1050",
+      locality: ["Ixelles"],
       country: ["Belgium"],
     },
     output: {
@@ -142,9 +153,13 @@ const runs = {
   },
   inAnotherCountryWithoutAStreet: {
     input: {
-      house: ["Swainstown", "C15 YK80"],
-      country: ["Ireland"],
+      house: ["Swainstown"],
+      postalCode: "C15 YK80",
       locality: ["Kilmessan"],
+      country: ["Ireland"],
+    },
+    config: {
+      postalCodeLevel: "house",
     },
     output: {
       electedMatch: {
