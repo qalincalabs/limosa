@@ -74,6 +74,7 @@ function addressTagsForSpecificLevel(input, level) {
   return tags;
 }
 
+// TODO input variable confusing with anonymous function input parameter
 export function buildStrategy(input, config) {
   // TODO : a bit of a hack
 

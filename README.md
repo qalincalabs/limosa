@@ -5,7 +5,8 @@ Geolocation based on Photon (Komoot) through Open Street Map. The geocoder goes 
 > Strict ! For instance, if a housenumber doesn't exist in OSM, the geocoder will only output the street.
 
 ```javascript
-import * as limosa from "../geocoder.js";
+import * as limosa from "@qalincalabs/limosa";
+import { nominatimGetDetails } from "@qalincalabs/limosa";
 
 const result = await limosa.locate({
   house: "14",
