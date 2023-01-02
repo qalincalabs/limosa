@@ -2,6 +2,8 @@ import * as limosa from "./geocoder.js";
 
 // limosa locate
 
+/*
+
 // Esplanade Godefroy 1, 6830 Bouillon, Belgique
 test("Geocode sample", async () => {
   const result = await limosa.locate({
@@ -28,8 +30,12 @@ test("Geocode sample", async () => {
   console.log(nominatimResult)
 }, 60000);
 
+*/
+
+// start with 
+
 test("Global geocode", async () => {
-  const run = runs.exactMatchInCity;
+  const run = runs.notTheExactCity;
   const config = Object.assign({ untilLevel: "house" }, run.config);
   const result = await limosa.locate(run.input, config);
 

@@ -2,6 +2,98 @@ import * as fuzz from "fuzzball";
 import { ofnBeProfile } from "./configs/ofnBe";
 import { photonSearch, nominatimGetDetails } from "./framework.js";
 
+// photonLocate
+// nominatimLookup
+// don't forget attribution
+
+// limosa levels
+// photon levels
+
+// exactPlace
+// places 
+// limosaLevel
+// photonLevel
+// location, geometry (option)
+// photonMatch
+// exactMatch
+// exactUpperMatch
+
+// places (merge all places)
+// use nominatim lookup and add photon / limosa info
+// use open cage : https://github.com/fragaria/address-formatter
+
+// use nominatim formatting
+// map photon to nominatim formatting (keep photon properties)
+
+// photonAddress 
+// formatted address
+// rename bounding box to extent
+// replace lat long with location
+// add geometry if asked (geojson)
+// uuid (osm uuid R4241)
+// addressLines
+// globalAddressLines
+// plus code -> might be a way to insure uniqueness -> only for a house (not for area ...)
+// get all places 
+
+// status -> photonLevel, limosaLevel, 
+// if there is a name -> match not achieved or is it ?
+
+// place I can use as areas
+// best possible address
+// what to consider as an area
+
+// photonMatch
+
+// within
+
+// post code within country
+// get all places -> how to have an id for them ?? -> us OSM one but if not sluggify ?
+// iso/countries/
+
+// map nominatim to places
+// map photon to places
+
+const myResult = {
+
+  place: {},
+
+  inPlaces: [
+    {
+
+    },
+    {
+
+    }
+  ],
+
+  exactPlace: {
+
+  },
+  lowestPlace: {
+
+  },
+  places: [
+    {
+      // nominatim output
+      // formattedAddress
+      openCage: {
+
+      },
+      photon: {
+        district: "",
+        // the specific photon properties
+        // + type -> level
+        // + name
+      },
+      limosa: {
+        level: "locality"
+      }
+    }
+  ]
+}
+
+
 const photonProperties = [
   "country",
   "countrycode",
@@ -28,11 +120,12 @@ const untilPropertyMapping = {
   street: "street",
   locality: "district",
   region: "county",
-  country: "country",
+  country: "countrycode",
 };
 
 const levelsMajorToMinor = ["country", "region", "locality", "street", "house"];
 
+/*
 function osmUuidToOsmElement(uuid) {
   const split = uuid.split("-");
   return {
@@ -40,6 +133,7 @@ function osmUuidToOsmElement(uuid) {
     type: split[0].toUpperCase(),
   };
 }
+*/
 
 export async function locate(input, config) {
   // TODO a bit of a hack to build a strategy per
@@ -244,15 +338,29 @@ export class Geocoder {
     };
 
     if (mostCommonIds.length == 1)
-      result.electedOsmElement = osmUuidToOsmElement(mostCommonIds[0]);
+      result.electedOsmElement = {
+        id: mostCommonIds[0]
+      }
 
     if (
       mostCommonIds.length > 1 &&
-      mostCommonIds.filter((i) => i.startsWith("w")).length > 0
+      mostCommonIds.filter((i) => i.startsWith("W")).length > 0
     )
-      result.electedOsmElement = osmUuidToOsmElement(
-        mostCommonIds.filter((i) => i.startsWith("w"))[0]
-      );
+      result.electedOsmElement = {
+        id: mostCommonIds.filter((i) => i.startsWith("W"))[0]
+      }
+
+    console.log(previousMatch)
+
+    const placeUuids = []
+    for(const p of previousMatch){
+      for(let i = 0; i < p.uuids.length; i++){
+        if(p.isExactTypes[i])
+          placeUuids.push(p.uuids[i])
+      }
+    }
+
+    result.placeUuids = placeUuids
 
     return result;
   }
@@ -260,10 +368,13 @@ export class Geocoder {
   async makeAndExecuteRuns(initialData, currentTactics) {
     const runs = [];
 
+   // console.log(currentTactics)
+
     // TODO get strategy tactics
     for (const tactic of currentTactics) {
       const addressTags = tactic.searchQuery(initialData);
 
+      console.log(tactic.layers)
       const response = await photonSearch(
         {
           addressTags: addressTags,
@@ -298,6 +409,8 @@ export class Geocoder {
       (a, b) => tactics.indexOf(b.key) - tactics.indexOf(a.key)
     );
 
+    //console.log(sortedMatrix)
+
     for (const m of sortedMatrix) {
       const e = groupedMatrix.find(
         (g) => g.value == m.value && g.property == m.property
@@ -308,10 +421,14 @@ export class Geocoder {
           property: m.property,
           keys: [m.key],
           uuids: [m.uuid],
+          exactTypes: [m.exactType],
+          isExactTypes: [m.isExactType],
         });
       } else {
         e.keys.push(m.key);
         e.uuids.push(m.uuid);
+        e.exactTypes.push(m.exactType);
+        e.isExactTypes.push(m.isExactType);
       }
     }
 
@@ -364,13 +481,19 @@ export class Geocoder {
         atLeastOne = true;
 
         for (const p of r.tactic.properties) {
+
+          console.log(r.tactic.key)
           if (f.properties[p] != null)
             matrix.push({
               key: r.tactic.key,
               property: p,
               value: f.properties[p],
               uuid:
-                f.properties.osm_type.toLowerCase() + "-" + f.properties.osm_id,
+                f.properties.osm_type + f.properties.osm_id,
+              exactType: f.properties.type,
+              isExactType: f.properties.type == p 
+              || (p == "housenumber" && f.properties.type == "house") // TODO house number is a pain
+              || (p == "countrycode" && f.properties.type == "country") // TODO country is a pain
             });
         }
       }
@@ -383,6 +506,7 @@ export class Geocoder {
       )
         break;
     }
+    console.log(matrix)
     return matrix;
   }
 }

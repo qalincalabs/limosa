@@ -12,11 +12,13 @@ export async function photonSearch(query, config) {
       q: query.addressTags.join(", "),
     });
 
-    if (config?.layers != null) {
+    if (query?.layers != null) {
       query.layers.forEach((l) => searchParams.append("layer", l));
     }
 
     if (query?.limit != null) searchParams.append("limit", query.limit);
+
+    console.log(searchParams)
 
     return await get(config.url, searchParams);
   }
