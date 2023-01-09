@@ -2,84 +2,61 @@ import * as fuzz from "fuzzball";
 import { ofnBeProfile } from "./configs/ofnBe";
 import { photonSearch, nominatimGetDetails } from "./framework.js";
 
-// photonLocate
-// nominatimLookup
 // don't forget attribution
 
 // limosa levels
 // photon levels
 
-// exactPlace
-// places 
-// limosaLevel
-// photonLevel
-// location, geometry (option)
-// photonMatch
-// exactMatch
-// exactUpperMatch
-
-// places (merge all places)
 // use nominatim lookup and add photon / limosa info
 // use open cage : https://github.com/fragaria/address-formatter
 
-// use nominatim formatting
-// map photon to nominatim formatting (keep photon properties)
-
-// photonAddress 
 // formatted address
 // rename bounding box to extent
 // replace lat long with location
 // add geometry if asked (geojson)
-// uuid (osm uuid R4241)
-// addressLines
-// globalAddressLines
 // plus code -> might be a way to insure uniqueness -> only for a house (not for area ...)
-// get all places 
 
-// status -> photonLevel, limosaLevel, 
-// if there is a name -> match not achieved or is it ?
-
-// place I can use as areas
-// best possible address
-// what to consider as an area
-
-// photonMatch
-
-// within
-
-// post code within country
-// get all places -> how to have an id for them ?? -> us OSM one but if not sluggify ?
-// iso/countries/
-
-// map nominatim to places
-// map photon to places
-
-const myResult = {
-
-  place: {},
-
-  inPlaces: [
+const result = {
+  exactPlace: {
+    relId: "",
+  },
+  lowestLevelPlace: {
+    relId: "",
+  },
+  places: [
     {
-
+      relId: "places/be",
+      ids: [],
+      name: "Belgique / ...",
+      osm: {},
+      photon: {
+        layer: "country",
+      },
     },
     {
-
-    }
+      relId: "photon/be/districts/county_name",
+      ids: [],
+      name: "Belgique / ...",
+      osm: {},
+      photon: {
+        layer: "country",
+      },
+    },
   ],
+};
 
-  exactPlace: {
+const myResult = {
+  place: {},
 
-  },
-  lowestPlace: {
+  inPlaces: [{}, {}],
 
-  },
+  exactPlace: {},
+  lowestPlace: {},
   places: [
     {
       // nominatim output
       // formattedAddress
-      openCage: {
-
-      },
+      openCage: {},
       photon: {
         district: "",
         // the specific photon properties
@@ -87,12 +64,11 @@ const myResult = {
         // + name
       },
       limosa: {
-        level: "locality"
-      }
-    }
-  ]
-}
-
+        level: "locality",
+      },
+    },
+  ],
+};
 
 const photonProperties = [
   "country",
@@ -136,6 +112,13 @@ function osmUuidToOsmElement(uuid) {
 */
 
 export async function locate(input, config) {
+
+  const defaultConfig = {
+    untilLevel: "house"
+  }
+
+  config = Object.assign(defaultConfig, config);
+
   // TODO a bit of a hack to build a strategy per
   const strategy = buildStrategy(input, config);
   const geocoder = new Geocoder(strategy);
@@ -188,8 +171,6 @@ export function buildStrategy(input, config) {
     if (input[postalCodeLevel] == null) input[postalCodeLevel] = [];
     input[postalCodeLevel].push(postalCode);
   }
-
-  console.log(input);
 
   const strategy = {
     key: "default",
@@ -329,38 +310,63 @@ export class Geocoder {
 
     if (arrays.length == 0) return;
 
-    const mostCommonIds = arrays.reduce((p, c) =>
-      p.filter((e) => c.includes(e))
-    );
+    for (const pp of previousMatch) {
+      let indexToKeep = pp.isExactTypes.reduce(
+        (acc, curr, index) => (curr ? [...acc, index] : acc),
+        []
+      );
 
-    const result = {
-      electedMatch: exactMatch,
-    };
+      const indexToKeepNodes = indexToKeep.filter((ik) =>
+        pp.uuids[ik].startsWith("N") // node has priority over way
+      );
 
-    if (mostCommonIds.length == 1)
-      result.electedOsmElement = {
-        id: mostCommonIds[0]
+      if (pp.property == "housenumber" && indexToKeepNodes.length == 1) {
+        indexToKeep = indexToKeepNodes;
       }
 
-    if (
-      mostCommonIds.length > 1 &&
-      mostCommonIds.filter((i) => i.startsWith("W")).length > 0
-    )
-      result.electedOsmElement = {
-        id: mostCommonIds.filter((i) => i.startsWith("W"))[0]
+      const singleIndexToKeep = indexToKeep[0];
+
+      if (indexToKeep.length == 1) {
+        pp.exactType = pp.exactTypes[singleIndexToKeep];
+        pp.key = pp.keys[singleIndexToKeep];
+        pp.uuid = pp.uuids[singleIndexToKeep];
       }
 
-    console.log(previousMatch)
-
-    const placeUuids = []
-    for(const p of previousMatch){
-      for(let i = 0; i < p.uuids.length; i++){
-        if(p.isExactTypes[i])
-          placeUuids.push(p.uuids[i])
-      }
+      delete pp.isExactTypes;
+      delete pp.uniqueKeys;
+      delete pp.exactTypes;
+      delete pp.keys;
+      delete pp.uuids;
     }
 
-    result.placeUuids = placeUuids
+    const features = runs.map((r) => r.features).flat();
+
+    for (const pp of previousMatch.filter((p) => p.uuid != null)) {
+      pp.feature = features.find(
+        (f) =>
+          f.properties.osm_id == pp.uuid.slice(1) &&
+          f.properties.osm_type == pp.uuid[0]
+      );
+    }
+
+    const levelToAchieve = "global_house";
+
+    const result = {};
+
+    result.match = exactMatch;
+    const exactFeatureIndex = previousMatch.findIndex(
+      (p) => p.key == levelToAchieve && p.feature != null
+    );
+
+    if (exactFeatureIndex >= 0) {
+      result.exactFeature = previousMatch[exactFeatureIndex].feature;
+      delete previousMatch[exactFeatureIndex];
+    }
+
+    result.upperFeatures = previousMatch
+      .filter((p) => p.feature != null)
+      .map((p) => p.feature)
+      .reverse();
 
     return result;
   }
@@ -368,13 +374,10 @@ export class Geocoder {
   async makeAndExecuteRuns(initialData, currentTactics) {
     const runs = [];
 
-   // console.log(currentTactics)
-
     // TODO get strategy tactics
     for (const tactic of currentTactics) {
       const addressTags = tactic.searchQuery(initialData);
 
-      console.log(tactic.layers)
       const response = await photonSearch(
         {
           addressTags: addressTags,
@@ -408,8 +411,6 @@ export class Geocoder {
     const sortedMatrix = matrix.sort(
       (a, b) => tactics.indexOf(b.key) - tactics.indexOf(a.key)
     );
-
-    //console.log(sortedMatrix)
 
     for (const m of sortedMatrix) {
       const e = groupedMatrix.find(
@@ -481,19 +482,17 @@ export class Geocoder {
         atLeastOne = true;
 
         for (const p of r.tactic.properties) {
-
-          console.log(r.tactic.key)
           if (f.properties[p] != null)
             matrix.push({
               key: r.tactic.key,
               property: p,
               value: f.properties[p],
-              uuid:
-                f.properties.osm_type + f.properties.osm_id,
+              uuid: f.properties.osm_type + f.properties.osm_id,
               exactType: f.properties.type,
-              isExactType: f.properties.type == p 
-              || (p == "housenumber" && f.properties.type == "house") // TODO house number is a pain
-              || (p == "countrycode" && f.properties.type == "country") // TODO country is a pain
+              isExactType:
+                f.properties.type == p ||
+                (p == "housenumber" && f.properties.type == "house") || // TODO house number is a pain
+                (p == "countrycode" && f.properties.type == "country"), // TODO country is a pain
             });
         }
       }
@@ -506,7 +505,6 @@ export class Geocoder {
       )
         break;
     }
-    console.log(matrix)
     return matrix;
   }
 }

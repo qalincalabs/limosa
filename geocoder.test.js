@@ -1,70 +1,31 @@
 import * as limosa from "./geocoder.js";
 
-// limosa locate
-
-/*
-
 // Esplanade Godefroy 1, 6830 Bouillon, Belgique
-test("Geocode sample", async () => {
-  const result = await limosa.locate({
-    house: "14",
-    street: "Quai des Saulx",
-    locality: "Bouillon",
-    postalCode: "6830",
-    country: "Belgium",
-  });
-
-  console.log(result);
-
-  // to get extra info, call nominatim
-  const nominatimQuery = {
-    osmid: result.electedOsmElement.id,
-    osmtype: result.electedOsmElement.type,
-    addressdetails: 1,
-    namedetails: 1,
-    tagdetails: 1,
-  };
-
-  const nominatimResult = await limosa.nominatimGetDetails(nominatimQuery);
-
-  console.log(nominatimResult)
-}, 60000);
-
-*/
-
-// start with 
 
 test("Global geocode", async () => {
-  const run = runs.notTheExactCity;
-  const config = Object.assign({ untilLevel: "house" }, run.config);
-  const result = await limosa.locate(run.input, config);
+  const run = runs.mainSample;
+  const result = await limosa.locate(run.input, run.config);
 
-  console.log(result);
+  console.log(JSON.stringify(result, null, 2));
 }, 60000);
 
 const runs = {
+  mainSample: {
+    input: {
+      house: "14",
+      street: "Quai des Saulx",
+      locality: "Bouillon",
+      postalCode: "6830",
+      country: "Belgium"
+    }
+  },
   exactMatchInCity: {
     input: {
       street: ["Av. du Vert Chasseur 46"],
       postalCode: "1180",
       locality: ["Uccle"],
       country: ["Belgium"],
-    },
-    output: {
-      electedMatch: {
-        countrycode: "BE",
-        state: "Région de Bruxelles-Capitale - Brussels Hoofdstedelijk Gewest",
-        county: "Brussel-Hoofdstad - Bruxelles-Capitale",
-        city: "Uccle - Ukkel",
-        postcode: "1180",
-        street: "Avenue du Vert Chasseur - Groene Jagerslaan",
-        housenumber: "46",
-      },
-      electedOsmElement: {
-        id: "30355110",
-        type: "W",
-      },
-    },
+    }
   },
   houseNumberUnknown: {
     input: {
@@ -72,22 +33,7 @@ const runs = {
       postalCode: "6850",
       locality: ["Carlsbourg"], // locality, district, city
       country: ["Belgium"], // country
-    },
-    output: {
-      electedMatch: {
-        countrycode: "BE",
-        state: "Luxembourg",
-        county: "Neufchâteau",
-        city: "Paliseul",
-        district: "Carlsbourg",
-        postcode: "6850",
-        street: "Grand Rue",
-      },
-      electedOsmElement: {
-        id: "617274322",
-        type: "W",
-      },
-    },
+    }
   },
   exactMatchInCountryside: {
     input: {
@@ -95,23 +41,7 @@ const runs = {
       postalCode: "6850",
       locality: ["Carlsbourg"], // locality, district, city
       country: ["Belgium"], // country
-    },
-    output: {
-      electedMatch: {
-        countrycode: "BE",
-        state: "Luxembourg",
-        county: "Neufchâteau",
-        city: "Paliseul",
-        district: "Carlsbourg",
-        postcode: "6850",
-        street: "Grand Rue",
-        housenumber: "40",
-      },
-      electedOsmElement: {
-        id: "890827177",
-        type: "W",
-      },
-    },
+    }
   },
   notTheExactCity: {
     input: {
@@ -119,23 +49,7 @@ const runs = {
       postalCode: "1050",
       country: ["Belgium"],
       locality: ["Ixelles"],
-    },
-    ouput: {
-      electedMatch: {
-        countrycode: "BE",
-        state: "Région de Bruxelles-Capitale - Brussels Hoofdstedelijk Gewest",
-        county: "Brussel-Hoofdstad - Bruxelles-Capitale",
-        city: "Bruxelles - Brussel",
-        district: "Bruxelles - Brussel",
-        postcode: "1000",
-        street: "Avenue Franklin Roosevelt - Franklin Rooseveltlaan",
-        housenumber: "50",
-      },
-      electedOsmElement: {
-        id: "9429754917",
-        type: "N",
-      },
-    },
+    }
   },
   fakeStreet: {
     input: {
@@ -143,18 +57,6 @@ const runs = {
       postalCode: "1050",
       locality: ["Ixelles"],
       country: ["Belgium"],
-    },
-    output: {
-      electedMatch: {
-        countrycode: "BE",
-        state: "Région de Bruxelles-Capitale - Brussels Hoofdstedelijk Gewest",
-        county: "Brussel-Hoofdstad - Bruxelles-Capitale",
-        city: "Ixelles - Elsene",
-      },
-      electedOsmElement: {
-        id: "58250",
-        type: "R",
-      },
     },
   },
   inAnotherCountryWithoutAStreet: {
@@ -166,20 +68,6 @@ const runs = {
     },
     config: {
       postalCodeLevel: "house",
-    },
-    output: {
-      electedMatch: {
-        countrycode: "IE",
-        county: "County Meath",
-        city: "Kilmessan",
-        district: "Kilmessan ED",
-        postcode: "C15 YK80",
-        street: "Swainstown",
-      },
-      electedOsmElement: {
-        id: "10026781976",
-        type: "N",
-      },
     },
   },
 };

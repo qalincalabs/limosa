@@ -1,12 +1,13 @@
 # Limosa [alpha]
 
-Geolocation based on Photon (Komoot) through Open Street Map. The geocoder goes through strategy-defined successive layers (country, locality, street, housenumber), makes Photon requests based on those and then elect a match among all Photon results.
+Address geolocation javascript library on top of Open Street Map (OSM) open source public APIs : [Photon](https://github.com/komoot/photon) (Komoot) is the one used so far.
+
+Define an address (house, street, locality, postal code, region, country). Limosa then query Photon successive layers and compute a best match, get the exact place (if possible) and places above that (such as country, locality).
 
 > Strict ! For instance, if a housenumber doesn't exist in OSM, the geocoder will only output the street.
 
 ```javascript
 import * as limosa from "@qalincalabs/limosa";
-import { nominatimGetDetails } from "@qalincalabs/limosa";
 
 const result = await limosa.locate({
   house: "14",
@@ -18,38 +19,65 @@ const result = await limosa.locate({
 
 /*
 result is
-  {
-    electedMatch: {
-      countrycode: 'BE',
-      state: 'Luxembourg',
-      county: 'Neufchâteau',
-      city: 'Bouillon',
-      district: 'Bouillon',
-      postcode: '6830',
-      street: 'Quai des Saulx',
-      housenumber: '14'
+{
+  "match": {
+    "countrycode": "BE",
+    "state": "Luxembourg",
+    "county": "Neufchâteau",
+    "city": "Bouillon",
+    "district": "Bouillon",
+    "postcode": "6830",
+    "street": "Quai des Saulx",
+    "housenumber": "14"
+  },
+  "exactFeature": {
+    "geometry": {
+      "coordinates": [
+        5.069359068004883,
+        49.7938062
+      ],
+      "type": "Point"
     },
-    electedOsmElement: { id: '422861107', type: 'W' }
-  }
+    "type": "Feature",
+    "properties": {
+      "osm_id": 422861107,
+      "extent": [
+        5.069283,
+        49.7938544,
+        5.0694352,
+        49.7937584
+      ],
+      "country": "België / Belgique / Belgien",
+      "city": "Bouillon",
+      "countrycode": "BE",
+      "postcode": "6830",
+      "county": "Neufchâteau",
+      "type": "house",
+      "osm_type": "W",
+      "osm_key": "tourism",
+      "housenumber": "14",
+      "street": "Quai des Saulx",
+      "district": "Bouillon",
+      "osm_value": "attraction",
+      "name": "Archéoscope Godefroid de Bouillon",
+      "state": "Luxembourg"
+    }
+  },
+  "upperFeatures": [
+    // ...
+  ]
+}
 */
 
-// to get extra info, call nominatim
-const nominatimQuery = {
-  osmid: result.electedOsmElement.id,
-  osmtype: result.electedOsmElement.type,
-  addressdetails: 1,
-  namedetails: 1,
-  tagdetails: 1,
-}
-
-const nominatimResult = await nominatimGetDetails(nominatimQuery)
 ```
 
 ## TODOs
 
 * Plug with https://github.com/openvenues/libpostal (need to find a public API)
 
-## Custom geocoder
+## Custom geocoder [ON HOLD]
+
+> The geocoder started with this but it's now put on the side
 
 ### Strategies
 
