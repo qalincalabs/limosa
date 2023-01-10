@@ -2,9 +2,13 @@
 
 Address geolocation javascript library on top of Open Street Map (OSM) open source public APIs : [Photon](https://github.com/komoot/photon) (Komoot) for searching, [Nominatim](https://github.com/osm-search/Nominatim) for decorating.
 
+> Important: Since Photon and Nominatim are free to use please be fair and avoid excessive requests.
+
 Define an address (house, street, locality, postal code, region, country). Limosa then query Photon successive layers and compute a best match, get the exact place (if possible) and places above that (such as country, locality).
 
 > Strict ! For instance, if a housenumber doesn't exist in OSM, the geocoder will only output the street.
+
+## Usage
 
 ```javascript
 import * as limosa from "@qalincalabs/limosa";
