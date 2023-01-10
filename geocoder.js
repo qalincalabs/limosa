@@ -2,6 +2,7 @@ import * as fuzz from "fuzzball";
 import { ofnBeProfile } from "./configs/ofnBe";
 import { photonSearch, nominatimGetDetails } from "./framework.js";
 
+// TODO result features was transformed
 // don't forget attribution
 
 // limosa levels
@@ -341,6 +342,15 @@ export class Geocoder {
 
     const features = runs.map((r) => r.features).flat();
 
+    // reset feature as it was at origin
+    features.forEach(f => {
+      if(f.properties.type == "house")
+        return
+
+      delete f.properties[f.properties.type]
+    })
+
+
     for (const pp of previousMatch.filter((p) => p.uuid != null)) {
       pp.feature = features.find(
         (f) =>
@@ -389,7 +399,7 @@ export class Geocoder {
         }
       );
 
-      // TODO refactor
+      // TODO this is transformin photon response
       const features = response.features.map((f) => {
         if (f.properties.type == "house") return f;
         f.properties[f.properties.type] = f.properties.name;
