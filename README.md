@@ -83,6 +83,7 @@ photonResult is
 
 ## TODOs
 
+* A place (like a shop) without a street number isn't exactly located
 * Plug with https://github.com/openvenues/libpostal (need to find a public API)
 
 ## Custom geocoder [ON HOLD]
