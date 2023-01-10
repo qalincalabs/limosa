@@ -1,6 +1,6 @@
 # Limosa [alpha]
 
-Address geolocation javascript library on top of Open Street Map (OSM) open source public APIs : [Photon](https://github.com/komoot/photon) (Komoot) is the one used so far.
+Address geolocation javascript library on top of Open Street Map (OSM) open source public APIs : [Photon](https://github.com/komoot/photon) (Komoot) for searching, [Nominatim](https://github.com/osm-search/Nominatim) for decorating.
 
 Define an address (house, street, locality, postal code, region, country). Limosa then query Photon successive layers and compute a best match, get the exact place (if possible) and places above that (such as country, locality).
 
@@ -9,7 +9,7 @@ Define an address (house, street, locality, postal code, region, country). Limos
 ```javascript
 import * as limosa from "@qalincalabs/limosa";
 
-const result = await limosa.locate({
+const photonResult = await limosa.locate({
   house: "14",
   street: "Quai des Saulx",
   locality: "Bouillon",
@@ -17,8 +17,14 @@ const result = await limosa.locate({
   country: "Belgium"
 });
 
+const uuids = limosa.extractOsmUuids(photonResult)
+const nominatimResult = await limosa.nominatimLookup(
+  { osm_ids: uuids },
+  //{ format: "jsonv2", addressdetails: 1, namedetails: 1, extratags: 1 }
+);
+
 /*
-result is
+photonResult is
 {
   "match": {
     "countrycode": "BE",

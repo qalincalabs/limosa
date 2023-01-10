@@ -33,3 +33,32 @@ export async function nominatimGetDetails(query, config) {
   query.format = "json";
   return await get(url + "/details", new URLSearchParams(query));
 }
+
+export async function nominatimLookup(query, config) {
+  const url = config?.url ?? "https://nominatim.openstreetmap.org";
+
+  config = Object.assign({ format: "jsonv2" }, config);
+  query = Object.assign(config, query);
+
+  return await get(url + "/lookup", new URLSearchParams(query));
+}
+
+export function extractOsmUuids(photonResult) {
+  const uuids = [];
+
+  const getUuidFromFeature = (f) => f.properties.osm_type + f.properties.osm_id;
+
+  if (photonResult.exactFeature != null) {
+    uuids.push(getUuidFromFeature(photonResult.exactFeature));
+  }
+
+  if (photonResult.upperFeatures != null) {
+    photonResult.upperFeatures.forEach((f) =>
+      uuids.push(getUuidFromFeature(f))
+    );
+  }
+
+  if (uuids.length == 0) return null;
+
+  return uuids;
+}

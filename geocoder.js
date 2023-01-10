@@ -1,88 +1,11 @@
 import * as fuzz from "fuzzball";
 import { ofnBeProfile } from "./configs/ofnBe";
-import { photonSearch, nominatimGetDetails } from "./framework.js";
-
-// TODO result features was transformed
-// don't forget attribution
-
-// limosa levels
-// photon levels
-
-// use nominatim lookup and add photon / limosa info
-// use open cage : https://github.com/fragaria/address-formatter
-
-// formatted address
-// rename bounding box to extent
-// replace lat long with location
-// add geometry if asked (geojson)
-// plus code -> might be a way to insure uniqueness -> only for a house (not for area ...)
-
-const result = {
-  exactPlace: {
-    relId: "",
-  },
-  lowestLevelPlace: {
-    relId: "",
-  },
-  places: [
-    {
-      relId: "places/be",
-      ids: [],
-      name: "Belgique / ...",
-      osm: {},
-      photon: {
-        layer: "country",
-      },
-    },
-    {
-      relId: "photon/be/districts/county_name",
-      ids: [],
-      name: "Belgique / ...",
-      osm: {},
-      photon: {
-        layer: "country",
-      },
-    },
-  ],
-};
-
-const myResult = {
-  place: {},
-
-  inPlaces: [{}, {}],
-
-  exactPlace: {},
-  lowestPlace: {},
-  places: [
-    {
-      // nominatim output
-      // formattedAddress
-      openCage: {},
-      photon: {
-        district: "",
-        // the specific photon properties
-        // + type -> level
-        // + name
-      },
-      limosa: {
-        level: "locality",
-      },
-    },
-  ],
-};
-
-const photonProperties = [
-  "country",
-  "countrycode",
-  "state",
-  "county",
-  "city",
-  "district",
-  "locality",
-  "postcode",
-  "street",
-  "housenumber",
-];
+import {
+  photonSearch,
+  nominatimGetDetails,
+  nominatimLookup,
+  extractOsmUuids,
+} from "./framework.js";
 
 const layersMapping = {
   house: ["house"],
@@ -102,21 +25,10 @@ const untilPropertyMapping = {
 
 const levelsMajorToMinor = ["country", "region", "locality", "street", "house"];
 
-/*
-function osmUuidToOsmElement(uuid) {
-  const split = uuid.split("-");
-  return {
-    id: split[1],
-    type: split[0].toUpperCase(),
-  };
-}
-*/
-
-export async function locate(input, config) {
-
+export async function photonLocate(input, config) {
   const defaultConfig = {
-    untilLevel: "house"
-  }
+    untilLevel: "house",
+  };
 
   config = Object.assign(defaultConfig, config);
 
@@ -317,8 +229,8 @@ export class Geocoder {
         []
       );
 
-      const indexToKeepNodes = indexToKeep.filter((ik) =>
-        pp.uuids[ik].startsWith("N") // node has priority over way
+      const indexToKeepNodes = indexToKeep.filter(
+        (ik) => pp.uuids[ik].startsWith("N") // node has priority over way
       );
 
       if (pp.property == "housenumber" && indexToKeepNodes.length == 1) {
@@ -343,13 +255,11 @@ export class Geocoder {
     const features = runs.map((r) => r.features).flat();
 
     // reset feature as it was at origin
-    features.forEach(f => {
-      if(f.properties.type == "house")
-        return
+    features.forEach((f) => {
+      if (f.properties.type == "house") return;
 
-      delete f.properties[f.properties.type]
-    })
-
+      delete f.properties[f.properties.type];
+    });
 
     for (const pp of previousMatch.filter((p) => p.uuid != null)) {
       pp.feature = features.find(
@@ -519,4 +429,4 @@ export class Geocoder {
   }
 }
 
-export { ofnBeProfile, nominatimGetDetails };
+export { ofnBeProfile, nominatimGetDetails, nominatimLookup, extractOsmUuids };

@@ -1,13 +1,30 @@
 import * as limosa from "./geocoder.js";
 
-// Esplanade Godefroy 1, 6830 Bouillon, Belgique
-
-test("Global geocode", async () => {
+test("Geocode sample", async () => {
   const run = runs.mainSample;
-  const result = await limosa.locate(run.input, run.config);
+  const photonResult = await limosa.photonLocate(run.input, run.config);
+  console.log(JSON.stringify(photonResult, null, 2));
 
-  console.log(JSON.stringify(result, null, 2));
+  const uuids = limosa.extractOsmUuids(photonResult);
+  console.log(uuids);
+
+  const nominatimResult = await limosa.nominatimLookup({ osm_ids: uuids });
+  console.log(JSON.stringify(nominatimResult, null, 2));
 }, 60000);
+
+test("Nominatim lookup", async () => {
+  const nominatimResult = await limosa.nominatimLookup(
+    { osm_ids: ["N9429754917", "N9429754918"] },
+    {
+      format: "geojson",
+      addressdetails: 1,
+      namedetails: 1,
+      extratags: 1,
+    }
+  );
+
+  console.log(JSON.stringify(nominatimResult, null, 2));
+});
 
 const runs = {
   mainSample: {
@@ -16,8 +33,8 @@ const runs = {
       street: "Quai des Saulx",
       locality: "Bouillon",
       postalCode: "6830",
-      country: "Belgium"
-    }
+      country: "Belgium",
+    },
   },
   exactMatchInCity: {
     input: {
@@ -25,7 +42,7 @@ const runs = {
       postalCode: "1180",
       locality: ["Uccle"],
       country: ["Belgium"],
-    }
+    },
   },
   houseNumberUnknown: {
     input: {
@@ -33,7 +50,7 @@ const runs = {
       postalCode: "6850",
       locality: ["Carlsbourg"], // locality, district, city
       country: ["Belgium"], // country
-    }
+    },
   },
   exactMatchInCountryside: {
     input: {
@@ -41,7 +58,7 @@ const runs = {
       postalCode: "6850",
       locality: ["Carlsbourg"], // locality, district, city
       country: ["Belgium"], // country
-    }
+    },
   },
   notTheExactCity: {
     input: {
@@ -49,7 +66,7 @@ const runs = {
       postalCode: "1050",
       country: ["Belgium"],
       locality: ["Ixelles"],
-    }
+    },
   },
   fakeStreet: {
     input: {
@@ -71,18 +88,3 @@ const runs = {
     },
   },
 };
-
-function logWithFunctionCode(obj) {
-  console.log(
-    JSON.stringify(
-      obj,
-      function (_key, val) {
-        if (typeof val === "function") {
-          return val + ""; // implicitly `toString` it
-        }
-        return val;
-      },
-      2
-    )
-  );
-}
