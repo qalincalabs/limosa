@@ -13,7 +13,7 @@ Define an address (house, street, locality, postal code, region, country). Limos
 ```javascript
 import * as limosa from "@qalincalabs/limosa";
 
-const photonResult = await limosa.locate({
+const photonResult = await limosa.photonLocate({
   house: "14",
   street: "Quai des Saulx",
   locality: "Bouillon",

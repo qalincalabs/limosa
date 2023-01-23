@@ -8,7 +8,13 @@ test("Geocode sample", async () => {
   const uuids = limosa.extractOsmUuids(photonResult);
   console.log(uuids);
 
-  const nominatimResult = await limosa.nominatimLookup({ osm_ids: uuids });
+  const nominatimResult = await limosa.nominatimLookup(
+    { osm_ids: uuids },
+    {
+      addressdetails: 1,
+      namedetails: 1,
+      extratags: 1,
+    });
   console.log(JSON.stringify(nominatimResult, null, 2));
 }, 60000);
 
