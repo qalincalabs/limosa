@@ -1,4 +1,4 @@
-import fetch from "node-fetch";
+import fetch, {Headers} from "node-fetch";
 
 async function get(url, urlSearchParams) {
   const requestUrl = url + "?" + urlSearchParams.toString();
