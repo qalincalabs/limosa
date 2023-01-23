@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@qalincalabs/limosa",
-  "version": "1.6.2",
+  "version": "1.6.3",
   "description": "Geolocation based on Photon (Komoot) through Open Street Map",
   "main": "geocoder.js",
   "scripts": {
@@ -27,6 +27,6 @@
   },
   "dependencies": {
     "fuzzball": "^2.1.2",
-    "node-fetch": "^3.3.0"
+    "node-fetch": "^2.6.8"
   }
 }
