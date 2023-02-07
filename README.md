@@ -83,6 +83,7 @@ photonResult is
 
 ## TODOs
 
+* When can't find exactFeature, try replacing locality with result first upperFeature city (for Belgium)
 * A place (like a shop) without a street number isn't exactly located
 * Plug with https://github.com/openvenues/libpostal (need to find a public API)
 

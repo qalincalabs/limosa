@@ -93,4 +93,13 @@ const runs = {
       postalCodeLevel: "house",
     },
   },
+  // TODO this does not work at the moment see todo
+  inAnotherProvince: {
+    input: {
+      street: ["5 Rue du Moulin"],
+      postalCode: "5555",
+      locality: ["Naomé"],
+      country: ["Belgium"],
+    },
+  },
 };
